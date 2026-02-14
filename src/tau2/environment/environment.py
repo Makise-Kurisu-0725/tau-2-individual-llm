@@ -80,6 +80,7 @@ class Environment:
         """
         if self.tools is None:
             raise ValueError("Tools not available")
+        # print(list(self.tools.get_tools().values()))
         return list(self.tools.get_tools().values())
 
     def get_user_tools(self) -> list[Tool]:

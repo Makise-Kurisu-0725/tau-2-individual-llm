@@ -114,13 +114,14 @@ class ToolKitBase(metaclass=ToolKitType):
         num_generic_tools = sum(
             self.tool_type(name) == ToolType.GENERIC for name in self.tools
         )
-        return {
+        tool_dict = {
             "num_tools": num_tools,
             "num_read_tools": num_read_tools,
             "num_write_tools": num_write_tools,
             "num_think_tools": num_think_tools,
             "num_generic_tools": num_generic_tools,
         }
+        return tool_dict
 
     def update_db(self, update_data: Optional[dict[str, Any]] = None):
         """Update the database of the ToolKit."""

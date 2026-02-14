@@ -176,6 +176,139 @@ def to_litellm_messages(messages: list[Message]) -> list[dict]:
             litellm_messages.append({"role": "system", "content": message.content})
     return litellm_messages
 
+# def generate(
+#     model: str,
+#     messages: list[Message],
+#     tools: Optional[list[Tool]] = None,
+#     tool_choice: Optional[str] = None,
+#     **kwargs: Any,
+# ) -> UserMessage | AssistantMessage:
+#     """
+#     Generate a response from the model.
+
+#     Args:
+#         model: The model to use.
+#         messages: The messages to send to the model.
+#         tools: The tools to use.
+#         tool_choice: The tool choice to use.
+#         **kwargs: Additional arguments to pass to the model.
+
+#     Returns: A tuple containing the message and the cost.
+#     """
+#     if kwargs.get("num_retries") is None:
+#         kwargs["num_retries"] = DEFAULT_MAX_RETRIES
+
+#     if model.startswith("claude") and not ALLOW_SONNET_THINKING:
+#         kwargs["thinking"] = {"type": "disabled"}
+    
+#     litellm_messages = to_litellm_messages(messages)
+#     tools_schema = [tool.openai_schema for tool in tools] if tools else None
+#     if tools_schema and tool_choice is None:
+#         tool_choice = "auto"
+    
+#     max_attempts = 3  # 最多尝试次数
+#     current_messages = litellm_messages
+    
+#     for attempt in range(max_attempts):
+#         try:
+#             response = completion(
+#                 model=model,
+#                 messages=current_messages,
+#                 tools=tools_schema,
+#                 tool_choice=tool_choice,
+#                 **kwargs,
+#             )
+#             break  # 成功则跳出循环
+            
+#         except Exception as e:
+#             error_message = str(e).lower()
+#             # 检查是否是输入长度过长的错误
+#             is_length_error = any(keyword in error_message for keyword in [
+#                 "context_length_exceeded",
+#                 "maximum context length",
+#                 "too long",
+#                 "token limit",
+#                 "context length",
+#                 "max_tokens",
+#             ])
+            
+#             if is_length_error and attempt < max_attempts - 1:
+#                 logger.warning(f"Input too long, attempting to truncate messages (attempt {attempt + 1}/{max_attempts})")
+#                 # 截断消息：保留第一条消息（通常是系统提示）和最近的消息
+#                 if len(current_messages) > 2:
+#                     # 计算需要保留的消息数量（每次减少20%）
+#                     keep_recent = max(1, int(len(current_messages) * 0.6))
+#                     if current_messages[0].get("role") == "system":
+#                         # 保留系统消息和最近的消息
+#                         current_messages = [current_messages[0]] + current_messages[-keep_recent:]
+#                     else:
+#                         # 只保留最近的消息
+#                         current_messages = current_messages[-keep_recent:]
+#                     logger.info(f"Truncated to {len(current_messages)} messages")
+#                     continue
+#                 else:
+#                     logger.error("Cannot truncate further, returning error message")
+#                     # 返回错误消息而不是抛出异常
+#                     return AssistantMessage(
+#                         role="assistant",
+#                         content="抱歉，输入内容过长，即使截断后仍无法处理。请减少输入长度后重试。",
+#                         tool_calls=None,
+#                         cost=0,
+#                         usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+#                         raw_data={},
+#                     )
+#             else:
+#                 logger.error(f"Error in completion: {e}")
+#                 if attempt == max_attempts - 1:
+#                     # 最后一次尝试失败，返回错误消息而不是抛出异常
+#                     return AssistantMessage(
+#                         role="assistant",
+#                         content=f"抱歉，生成响应时出现错误：{str(e)}",
+#                         tool_calls=None,
+#                         cost=0,
+#                         usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+#                         raw_data={},
+#                     )
+#                 raise e
+    
+#     cost = get_response_cost(response)
+#     usage = get_response_usage(response)
+#     response = response.choices[0]
+    
+#     try:
+#         finish_reason = response.finish_reason
+#         if finish_reason == "length":
+#             logger.warning("Output might be incomplete due to token limit!")
+#     except Exception as e:
+#         logger.error(e)
+#         raise e
+    
+#     assert response.message.role == "assistant", (
+#         "The response should be an assistant message"
+#     )
+    
+#     content = response.message.content
+#     tool_calls = response.message.tool_calls or []
+#     tool_calls = [
+#         ToolCall(
+#             id=tool_call.id,
+#             name=tool_call.function.name,
+#             arguments=json.loads(tool_call.function.arguments),
+#         )
+#         for tool_call in tool_calls
+#     ]
+#     tool_calls = tool_calls or None
+
+#     message = AssistantMessage(
+#         role="assistant",
+#         content=content,
+#         tool_calls=tool_calls,
+#         cost=cost,
+#         usage=usage,
+#         raw_data=response.to_dict(),
+#     )
+#     return message
+
 
 def generate(
     model: str,

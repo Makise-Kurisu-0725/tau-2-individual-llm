@@ -1,0 +1,12 @@
+models:
+  agent:
+    type: openai
+    model: /lpai/volumes/base-mindgpt-ali-sh-mix/luhengtong/base_models/DeepSeek-V3.2/
+    base_url: http://10.80.12.82:8080/v1
+    api_key: sk-my-local-key-12345
+  
+  user:
+    type: openai
+    model: /lpai/volumes/base-mindgpt-ali-sh-mix/luhengtong/base_models/DeepSeek-V3.2/
+    base_url: http://10.80.13.134:8080/v1
+    api_key: sk-my-local-key-12345
